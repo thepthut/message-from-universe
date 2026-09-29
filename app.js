@@ -20,6 +20,10 @@ const client =
       })
     : null;
 
+// จุดที่ 2 & 3: ตัวตรวจจับ Reduced Motion และตัวแปรนับลำดับรอบเพื่อตัด Race Condition
+const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+let requestSequence = 0;
+
 const STATE = {
   IDLE: "IDLE",
   SHUFFLING: "SHUFFLING",
@@ -107,7 +111,7 @@ async function fetchMessages() {
 function resetCardsUI() {
   cardElements.forEach((card) => {
     card.classList.remove("is-revealed", "is-dimmed");
-    card.disabled = true; // ปิดชั่วคราวระหว่างสับไพ่
+    card.disabled = true;
     card.setAttribute(
       "aria-label",
       `ไพ่ใบที่ ${Number(card.dataset.index) + 1}`
@@ -125,33 +129,53 @@ function resetCardsUI() {
 async function handleStart() {
   if (currentState === STATE.SHUFFLING) return;
 
+  // เพิ่ม Sequence Counter เพื่อตรวจสอบความถูกต้องของรอบ
+  const sequence = ++requestSequence;
+
   clearError();
   pickedMessages = [];
   activeCardElement = null;
   btnCopy.disabled = false;
   btnCopy.textContent = "คัดลอกข้อความ";
-  
+
   resetCardsUI();
   setState(STATE.SHUFFLING);
 
   try {
-    // หน่วงเวลาสับไพ่อย่างน้อย 1.2 วินาทีเพื่อให้เห็นแอนิเมชันชัดเจน
-    const minShuffleTimer = new Promise((resolve) => setTimeout(resolve, 1200));
-    const [data] = await Promise.all([fetchMessages(), minShuffleTimer]);
-    
-    pickedMessages = data;
+    // จุดที่ 2: ปรับ Duration ตาม Reduced Motion (ลดเวลาเป็น 0 เมื่อผู้ใช้เปิดการตั้งค่านี้)
+    const shuffleDuration = prefersReducedMotion.matches ? 0 : 1200;
+    const dealDuration = prefersReducedMotion.matches ? 0 : 750;
 
-    // เปลี่ยนจากสับไพ่ เป็นแอนิเมชันแจกไพ่ (0.5 วินาที)
+    const minShuffleTimer = new Promise((resolve) => {
+      setTimeout(resolve, shuffleDuration);
+    });
+
+    const [data] = await Promise.all([
+      fetchMessages(),
+      minShuffleTimer
+    ]);
+
+    // จุดที่ 3: เช็กว่าคำขอยังเป็นรอบล่าสุดหรือไม่
+    if (sequence !== requestSequence) return;
+
+    pickedMessages = data;
     cardsGrid.classList.remove("is-shuffling");
     cardsGrid.classList.add("is-dealing");
 
     setTimeout(() => {
+      // ตรวจสอบ sequence ซ้ำก่อนปรับ state เพื่อป้องกัน callback ข้ามรอบ
+      if (sequence !== requestSequence) return;
+
       setState(STATE.CHOOSING);
-      cardElements.forEach((card) => (card.disabled = false));
+      cardElements.forEach((card) => {
+        card.disabled = false;
+      });
       cardElements[0]?.focus();
-    }, 500);
+    }, dealDuration);
 
   } catch (err) {
+    if (sequence !== requestSequence) return;
+
     pickedMessages = [];
     cardsGrid.classList.remove("is-shuffling", "is-dealing");
 
