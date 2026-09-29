@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>ข้อความจากจักรวาล</title>
+  <meta name="description" content="รับข้อความนำทางชีวิตและการตัดสินใจจากจักรวาล">
+  <link rel="stylesheet" href="style.css">
+  
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1/dist/umd/supabase.min.js" defer></script>
+  <script src="app.js" defer></script>
+</head>
+<body>
+  <div class="app-container">
+    <header class="app-header">
+      <h1 class="title">ข้อความจากจักรวาล</h1>
+      <p class="subtitle">ตั้งจิตให้นิ่ง นึกถึงคำถามในใจ แล้วเลือกข้อความของคุณ</p>
+    </header>
+
+    <main class="main-content">
+      <div id="error-banner" class="error-banner hidden" role="alert" aria-live="assertive"></div>
+
+      <!-- สถานะที่ 1: หน้าแรก -->
+      <section id="stage-landing" class="stage">
+        <button id="btn-start" class="btn btn-primary" type="button">รับข้อความจากจักรวาล</button>
+      </section>
+
+      <!-- สถานะที่ 2 และ 3: สับไพ่ / แจกไพ่ / แสดงผล -->
+      <section id="stage-cards" class="stage hidden">
+        <p id="instruction-text" class="instruction" tabindex="-1" aria-live="polite">
+          เลือกไพ่หนึ่งใบที่ดึงดูดใจคุณที่สุด
+        </p>
+        
+        <div id="cards-grid" class="cards-grid" role="region" aria-label="ไพ่ทั้ง 3 ใบ">
+          <button class="card card-0" data-index="0" type="button" aria-label="ไพ่ใบที่ 1">
+            <span class="card-inner">
+              <span class="card-face card-front">
+                <span class="card-symbol" aria-hidden="true">✦</span>
+              </span>
+              <span class="card-face card-back">
+                <span class="card-category"></span>
+                <span class="card-message"></span>
+              </span>
+            </span>
+          </button>
+
+          <button class="card card-1" data-index="1" type="button" aria-label="ไพ่ใบที่ 2">
+            <span class="card-inner">
+              <span class="card-face card-front">
+                <span class="card-symbol" aria-hidden="true">✦</span>
+              </span>
+              <span class="card-face card-back">
+                <span class="card-category"></span>
+                <span class="card-message"></span>
+              </span>
+            </span>
+          </button>
+
+          <button class="card card-2" data-index="2" type="button" aria-label="ไพ่ใบที่ 3">
+            <span class="card-inner">
+              <span class="card-face card-front">
+                <span class="card-symbol" aria-hidden="true">✦</span>
+              </span>
+              <span class="card-face card-back">
+                <span class="card-category"></span>
+                <span class="card-message"></span>
+              </span>
+            </span>
+          </button>
+        </div>
+
+        <div id="action-controls" class="action-controls hidden">
+          <button id="btn-copy" class="btn btn-secondary" type="button">คัดลอกข้อความ</button>
+          <button id="btn-reset" class="btn btn-primary" type="button">สุ่มใหม่อีกครั้ง</button>
+        </div>
+      </section>
+    </main>
+  </div>
+</body>
+</html>
