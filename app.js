@@ -9,7 +9,7 @@ const SUPABASE_ANON_KEY = "sb_publishable_3X-SQNbG5ljRYyLiyFLHOQ_EyS1Snj7";
  */
 
 const CARD_FONT_FAMILY = "Sarabun";
-const WATERMARK_TEXT = "Kho Khwam Chak Chakkrawan · by faa (ฟ้า)";
+const WATERMARK_TEXT = "Kho Khwam Chak Chakkrawan · message-from-universe";
 
 // ชุดอักขระเดี่ยวที่ต้องเกาะพยัญชนะต้น ห้ามแยกหรือขึ้นต้นแถวเดี่ยว (Single Source of Truth)
 const THAI_FOLLOWING_CHARS = "\\u0E30-\\u0E3A\\u0E45\\u0E46\\u0E47-\\u0E4E\\u0E2F\\u0300-\\u036F";
