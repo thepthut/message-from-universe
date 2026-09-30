@@ -707,24 +707,27 @@ async function renderCardAndPrepareBlob() {
 
     // 4. สัญลักษณ์ไพ่ ✦ วาดด้วย Path Sparkle
     ctx.fillStyle = "#d4af37";
-    const sparkleRadius = Math.round(minDimension * 0.075);
-    const sparkleY = cardY + (isLandscape ? cardH * 0.11 : cardH * 0.12);
+    const sparkleRadius = Math.round(minDimension * 0.07);
+    const sparkleY = cardY + cardH * 0.13;
     drawSparkle(ctx, width / 2, sparkleY, sparkleRadius);
 
-    // 5. คำถามของผู้ใช้ (ถ้ามี)
-    let currentY = sparkleY + sparkleRadius + cardH * 0.04;
+    // 5. คำถามของผู้ใช้ (ปรับขยายขนาดให้อ่านชัดเจนระดับสตอรี่)
+    let currentY = sparkleY + sparkleRadius + cardH * 0.045;
     if (showQ) {
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
+      
+      // ป้ายหัวข้อ "คำถามของคุณ" (ขยายเป็น ~34px)
       ctx.fillStyle = "#8e9bb0";
-      const qLabelSize = Math.max(12, Math.round(minDimension * 0.026));
+      const qLabelSize = Math.max(18, Math.round(minDimension * 0.038));
       ctx.font = `600 ${qLabelSize}px '${CARD_FONT_FAMILY}', sans-serif`;
       ctx.fillText("คำถามของคุณ", width / 2, currentY);
-      currentY += qLabelSize * 1.5;
+      currentY += qLabelSize * 1.6;
 
+      // ตัวข้อความคำถาม (ขยายเป็น ~48px และใช้ SemiBold เพื่อให้อ่านง่าย)
       ctx.fillStyle = "#f0f3f8";
-      const qTextSize = Math.max(14, Math.round(minDimension * 0.034));
-      ctx.font = `400 ${qTextSize}px '${CARD_FONT_FAMILY}', sans-serif`;
+      const qTextSize = Math.max(22, Math.round(minDimension * 0.054));
+      ctx.font = `600 ${qTextSize}px '${CARD_FONT_FAMILY}', sans-serif`;
 
       let qLines = wrapThaiText(ctx, `"${userQuestion}"`, cardW * 0.82);
       if (qLines.length > 3) {
@@ -732,32 +735,33 @@ async function renderCardAndPrepareBlob() {
         qLines[2] = safeTruncateLine(ctx, qLines[2], cardW * 0.82);
       }
 
+      const qLineHeight = qTextSize * 1.5;
       for (const line of qLines) {
         ctx.fillText(line, width / 2, currentY);
-        currentY += qTextSize * 1.45;
+        currentY += qLineHeight;
       }
-      currentY += cardH * 0.025;
+      currentY += cardH * 0.035;
     }
 
-    // 6. หมวดหมู่ข้อความ
+    // 6. หมวดหมู่ข้อความ (ขยายเป็น ~38px)
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
     ctx.fillStyle = "#d4af37";
-    const catSize = Math.max(14, Math.round(minDimension * 0.036));
+    const catSize = Math.max(18, Math.round(minDimension * 0.042));
     ctx.font = `600 ${catSize}px '${CARD_FONT_FAMILY}', sans-serif`;
-    ctx.fillText(cardData.category.toUpperCase(), width / 2, currentY + 10);
-    currentY += catSize + cardH * 0.04;
+    ctx.fillText(cardData.category.toUpperCase(), width / 2, currentY + 12);
+    currentY += catSize + cardH * 0.045;
 
-    // 7. ข้อความคำตอบ (Dynamic Shrink & Truncate Guard)
+    // 7. ข้อความคำตอบ (ขยายเป็น ~58px)
     ctx.fillStyle = "#ffffff";
-    let msgSize = Math.max(16, Math.round(minDimension * 0.055));
+    let msgSize = Math.max(22, Math.round(minDimension * 0.065));
     ctx.font = `600 ${msgSize}px '${CARD_FONT_FAMILY}', sans-serif`;
 
     let msgLines = wrapThaiText(ctx, cardData.message, cardW * 0.82);
     let msgLineHeight = msgSize * 1.55;
-    const availableBottomSpace = (cardY + cardH) - currentY - 24;
+    const availableBottomSpace = (cardY + cardH) - currentY - 32;
 
-    const minAllowedFont = minDimension < 300 ? 12 : 14;
+    const minAllowedFont = minDimension < 300 ? 14 : 18;
     while ((msgLines.length * msgLineHeight > availableBottomSpace) && msgSize > minAllowedFont) {
       msgSize -= 1;
       ctx.font = `600 ${msgSize}px '${CARD_FONT_FAMILY}', sans-serif`;

@@ -66,7 +66,10 @@
       <!-- สเตจ 2: ASKING (พิมพ์คำถาม) -->
       <section id="stage-asking" class="stage hidden">
         <div class="form-container">
-          <label for="input-question" class="form-label">คำถามที่คุณอยากถามจักรวาล:</label>
+          <label for="input-question" class="form-label">
+            คำถามที่คุณอยากถามจักรวาล:
+            <span class="form-hint">💡 เหมาะกับคำถามปลายปิด <br>(ตอบว่า ใช่/ไม่ใช่ หรือ ทำ/ไม่ทำ เป็นต้น)</span>
+          </label>
           
           <div class="input-wrapper">
             <input 
@@ -74,7 +77,7 @@
               id="input-question" 
               class="text-input" 
               maxlength="120" 
-              placeholder="เช่น วันนี้กินอะไรดี? หรือ ควรเริ่มโปรเจกต์นี้ไหม..." 
+              placeholder="เช่น วันนี้กินข้าวมันไก่ดีไหม หรือ ควรเริ่มโปรเจกต์นี้ไหม..." 
               autocomplete="off"
             >
             <button 
