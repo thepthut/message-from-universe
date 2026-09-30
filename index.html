@@ -7,10 +7,37 @@
   <meta name="description" content="รับข้อความนำทางชีวิตและการตัดสินใจจากจักรวาล">
   <link rel="stylesheet" href="style.css">
   
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1/dist/umd/supabase.min.js" defer></script>
+  <!-- Self-host Supabase SDK v2.49.1 -->
+  <script src="vendor/supabase.min.js" defer></script>
   <script src="app.js" defer></script>
 </head>
 <body>
+  <!-- ป็อบอัพคำเตือนก่อนเข้าใช้งาน (<dialog>) -->
+  <dialog id="modal-disclaimer" class="modal-dialog" aria-labelledby="disclaimer-title" aria-describedby="disclaimer-desc">
+    <div class="modal-content">
+      <h2 id="disclaimer-title" class="modal-title">ข้อตกลงและคำเตือนก่อนใช้งาน</h2>
+      <div id="disclaimer-desc" class="modal-body">
+        <p>เว็บนี้สร้างขึ้นเพื่อ<strong>ความบันเทิงและการผ่อนคลายเท่านั้น</strong> ข้อความทั้งหมดมาจากการสุ่มคำตอบ ไม่ใช่คำแนะนำทางการแพทย์ จิตวิทยา กฎหมาย หรือการเงิน</p>
+        <p>หากคุณกำลังเผชิญกับความเครียด วิตกกังวล หรือมีเรื่องสำคัญที่ต้องตัดสินใจ โปรดปรึกษาคนใกล้ชิดหรือผู้เชี่ยวชาญ (สายด่วนสุขภาพจิต โทร. 1323 ตลอด 24 ชม.)</p>
+      </div>
+      <div class="modal-actions">
+        <button id="btn-ack-disclaimer" class="btn btn-primary" type="button">รับทราบและเข้าสู่เว็บไซต์</button>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- Fallback สำหรับเบราว์เซอร์ที่ไม่รองรับ <dialog> -->
+  <div id="fallback-disclaimer" class="fallback-disclaimer hidden" role="region" aria-label="คำเตือนก่อนใช้งาน">
+    <div class="fallback-content">
+      <h2>ข้อตกลงและคำเตือนก่อนใช้งาน</h2>
+      <div class="fallback-body">
+        <p>เว็บนี้สร้างขึ้นเพื่อ<strong>ความบันเทิงและการผ่อนคลายเท่านั้น</strong> ข้อความทั้งหมดมาจากการสุ่มคำตอบ ไม่ใช่คำแนะนำทางการแพทย์ จิตวิทยา กฎหมาย หรือการเงิน</p>
+        <p>หากคุณกำลังเผชิญกับความเครียด วิตกกังวล หรือมีเรื่องสำคัญที่ต้องตัดสินใจ โปรดปรึกษาคนใกล้ชิดหรือผู้เชี่ยวชาญ (สายด่วนสุขภาพจิต โทร. 1323 ตลอด 24 ชม.)</p>
+      </div>
+      <button id="btn-fallback-ack" class="btn btn-primary" type="button">รับทราบและเข้าสู่เว็บไซต์</button>
+    </div>
+  </div>
+
   <div class="app-container">
     <header class="app-header">
       <h1 class="title">ข้อความจากจักรวาล</h1>
@@ -20,13 +47,64 @@
     <main class="main-content">
       <div id="error-banner" class="error-banner hidden" role="alert" aria-live="assertive"></div>
 
-      <!-- สถานะที่ 1: หน้าแรก -->
-      <section id="stage-landing" class="stage">
-        <button id="btn-start" class="btn btn-primary" type="button">รับข้อความจากจักรวาล</button>
+      <!-- สเตจ 1: MODE_SELECT (เลือกรูปแบบ) -->
+      <section id="stage-mode" class="stage">
+        <div class="mode-selection-grid">
+          <button id="btn-mode-free" class="mode-card" type="button">
+            <span class="mode-icon">✦</span>
+            <span class="mode-title">สุ่มเรื่อย ๆ</span>
+            <span class="mode-desc">กดสุ่มแล้วเลือกไพ่ได้ทันที เหมาะกับการหาไอเดียทั่วไป</span>
+          </button>
+          <button id="btn-mode-question" class="mode-card" type="button">
+            <span class="mode-icon">💬</span>
+            <span class="mode-title">ตั้งคำถามก่อนสุ่ม</span>
+            <span class="mode-desc">พิมพ์เรื่องที่ค้างคาใจ แล้วให้จักรวาลช่วยตอบคำถาม</span>
+          </button>
+        </div>
       </section>
 
-      <!-- สถานะที่ 2 และ 3: สับไพ่ / แจกไพ่ / แสดงผล -->
+      <!-- สเตจ 2: ASKING (พิมพ์คำถาม) -->
+      <section id="stage-asking" class="stage hidden">
+        <div class="form-container">
+          <label for="input-question" class="form-label">คำถามที่คุณอยากถามจักรวาล:</label>
+          
+          <div class="input-wrapper">
+            <input 
+              type="text" 
+              id="input-question" 
+              class="text-input" 
+              maxlength="120" 
+              placeholder="เช่น วันนี้กินอะไรดี? หรือ ควรเริ่มโปรเจกต์นี้ไหม..." 
+              autocomplete="off"
+            >
+            <button 
+              type="button" 
+              id="btn-clear-question" 
+              class="btn-clear-input hidden" 
+              aria-label="ล้างคำถาม"
+            >✕</button>
+          </div>
+
+          <div class="input-meta">
+            <span id="char-counter" class="char-counter">0/120</span>
+          </div>
+
+          <p class="privacy-note">* คำถามจะถูกประมวลผลบนเครื่องของคุณเท่านั้น ไม่มีการส่งไปเก็บที่เซิร์ฟเวอร์</p>
+          
+          <div class="form-actions">
+            <button id="btn-submit-question" class="btn btn-primary" type="button" disabled>ถามจักรวาล</button>
+          </div>
+          <button id="btn-back-to-mode" class="btn-link" type="button">← ย้อนกลับไปเลือกโหมด</button>
+        </div>
+      </section>
+
+      <!-- สเตจ 3: ไพ่ (สับ / แจก / เปิดผลลัพธ์) -->
       <section id="stage-cards" class="stage hidden">
+        <div id="display-user-question" class="user-question-box hidden" aria-live="polite">
+          <span class="question-label">คำถามของคุณ:</span>
+          <p id="text-user-question" class="question-content"></p>
+        </div>
+
         <p id="instruction-text" class="instruction" tabindex="-1" aria-live="polite">
           เลือกไพ่หนึ่งใบที่ดึงดูดใจคุณที่สุด
         </p>
@@ -69,12 +147,86 @@
           </button>
         </div>
 
+        <!-- แถว 3 ปุ่มหลังเปิดผลลัพธ์ -->
         <div id="action-controls" class="action-controls hidden">
-          <button id="btn-copy" class="btn btn-secondary" type="button">คัดลอกข้อความ</button>
-          <button id="btn-reset" class="btn btn-primary" type="button">สุ่มใหม่อีกครั้ง</button>
+          <button id="btn-primary-action" class="btn btn-primary" type="button">สุ่มใหม่อีกครั้ง</button>
+          <button id="btn-change-mode" class="btn btn-secondary" type="button">เปลี่ยนโหมด</button>
+          <button id="btn-open-export" class="btn btn-secondary" type="button">บันทึกภาพ / แชร์</button>
         </div>
       </section>
     </main>
   </div>
+
+  <!-- ป็อบอัพบันทึกและส่งออกภาพ -->
+  <dialog id="modal-export" class="modal-dialog modal-dialog-lg" aria-labelledby="export-title">
+    <div class="modal-content">
+      <h2 id="export-title" class="modal-title">บันทึกภาพผลลัพธ์</h2>
+
+      <!-- แบนเนอร์เตือนแบบไม่บล็อก (สีเหลืองอำพัน) -->
+      <div id="modal-export-warning" class="modal-warning-banner hidden" role="status" aria-live="polite"></div>
+      <!-- แบนเนอร์ข้อผิดพลาดที่บล็อกการส่งออก (สีแดง) -->
+      <div id="modal-export-error" class="modal-error-banner hidden" role="alert" aria-live="assertive"></div>
+      
+      <div class="export-options">
+        <fieldset class="option-group">
+          <legend class="group-label">ขนาดภาพ:</legend>
+          <div class="preset-buttons">
+            <button class="btn-preset active" data-w="1080" data-h="1920" aria-pressed="true" type="button">สตอรี่ (9:16)</button>
+            <button class="btn-preset" data-w="1080" data-h="1080" aria-pressed="false" type="button">สี่เหลี่ยม (1:1)</button>
+            <button class="btn-preset" data-w="1080" data-h="1350" aria-pressed="false" type="button">แนวตั้ง (4:5)</button>
+            <button class="btn-preset" data-w="1920" data-h="1080" aria-pressed="false" type="button">แนวนอน (16:9)</button>
+          </div>
+        </fieldset>
+
+        <fieldset class="option-group custom-size-group">
+          <legend class="group-label">กำหนดเอง (300–4096 พิกเซล, รวมไม่เกิน 16 ล้านพิกเซล):</legend>
+          <div class="custom-inputs">
+            <input 
+              type="number" 
+              id="export-custom-w" 
+              min="300" 
+              max="4096" 
+              value="1080" 
+              aria-label="ความกว้าง" 
+              aria-describedby="custom-size-error"
+            >
+            <span>×</span>
+            <input 
+              type="number" 
+              id="export-custom-h" 
+              min="300" 
+              max="4096" 
+              value="1920" 
+              aria-label="ความสูง" 
+              aria-describedby="custom-size-error"
+            >
+          </div>
+          <span id="custom-size-error" class="input-error-msg hidden" role="alert"></span>
+        </fieldset>
+
+        <div id="group-include-question" class="option-group checkbox-group hidden">
+          <label class="checkbox-label">
+            <input type="checkbox" id="check-include-question" checked>
+            <span>แสดงคำถามของคุณในการ์ดภาพ</span>
+          </label>
+        </div>
+      </div>
+
+      <div class="preview-container">
+        <canvas id="export-preview-canvas" aria-label="ภาพตัวอย่างผลลัพธ์ที่จะส่งออก"></canvas>
+        <img id="export-fallback-img" class="export-fallback-img hidden" alt="ภาพผลลัพธ์พร้อมบันทึก">
+      </div>
+
+      <div id="safari-hint" class="safari-hint hidden">
+        <span>💡 หากการแชร์ไม่สำเร็จ สามารถแตะค้างที่ภาพด้านบนเพื่อ "บันทึกภาพ" หรือกดปุ่มแชร์อีกครั้ง</span>
+      </div>
+
+      <div class="modal-actions">
+        <button id="btn-close-export" class="btn btn-secondary" type="button">ปิด</button>
+        <button id="btn-download-export" class="btn btn-secondary" type="button" disabled>ดาวน์โหลด</button>
+        <button id="btn-do-export" class="btn btn-primary" type="button" disabled>แชร์ภาพ</button>
+      </div>
+    </div>
+  </dialog>
 </body>
 </html>
